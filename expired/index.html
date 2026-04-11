@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>家庭药品管理</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- 首页 -->
+        <div id="home-page" class="page">
+            <div class="header">
+                <h1>家庭药品管理</h1>
+                <button id="settings-btn" class="icon-btn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M19.4 15C19.2669 15.3016 19.1715 15.6207 19.1213 15.9463C19.0711 16.2719 19.0684 16.6022 19.1123 16.9229C19.1562 17.2436 19.2458 17.5495 19.3764 17.8257C19.507 18.1019 19.6746 18.3453 19.8718 18.5425C20.069 18.7397 20.2994 18.8832 20.549 18.9614C20.7986 19.0396 21.0622 19.0519 21.32 19.0001C21.5778 18.9482 21.8204 18.8321 22.0282 18.6602C22.236 18.4884 22.4004 18.2646 22.5068 18.0001C22.6132 17.7356 22.6557 17.4386 22.63 17.1401C22.6043 16.8416 22.5131 16.5521 22.3636 16.2919C22.2141 16.0316 22.0094 15.8063 21.7651 15.6399C21.5209 15.4734 21.2444 15.3722 20.9559 15.3466C20.6574 15.321 20.3604 15.3635 20.096 15.4701C19.8315 15.5767 19.6077 15.741 19.4359 15.9488C19.264 16.1566 19.1479 16.4001 19.1 16.6601" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M4.6 15C4.73313 15.3016 4.82846 15.6207 4.87868 15.9463C4.9289 16.2719 4.93162 16.6022 4.88773 16.9229C4.84384 17.2436 4.7542 17.5495 4.62362 17.8257C4.49305 18.1019 4.32544 18.3453 4.12822 18.5425C3.931 18.7397 3.70063 18.8832 3.451 18.9614C3.20137 19.0396 2.93783 19.0519 2.7 19.0001C2.4222 18.9482 2.17957 18.8321 1.97182 18.6602C1.76407 18.4884 1.59964 18.2646 1.49323 18.0001C1.38682 17.7356 1.34432 17.4386 1.37 17.1401C1.3957 16.8416 1.48692 16.5521 1.63642 16.2919C1.78593 16.0316 1.99059 15.8063 2.23488 15.6399C2.47917 15.4734 2.75564 15.3722 3.04414 15.3466C3.34264 15.321 3.6396 15.3635 3.90404 15.4701C4.16848 15.5767 4.39228 15.741 4.56413 15.9488C4.73598 16.1566 4.85213 16.4001 4.9 16.6601" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M12 3C13.0609 3 14.0783 3.42143 14.8284 4.17157C15.5786 4.92172 16 5.93913 16 7C16 8.06087 15.5786 9.07828 14.8284 9.82843C14.0783 10.5786 13.0609 11 12 11C10.9391 11 9.92172 10.5786 9.17157 9.82843C8.42143 9.07828 8 8.06087 8 7C8 5.93913 8.42143 4.92172 9.17157 4.17157C9.92172 3.42143 10.9391 3 12 3Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M12 21C10.9391 21 9.92172 20.5786 9.17157 19.8284C8.42143 19.0783 8 18.0609 8 17C8 15.9391 8.42143 14.9217 9.17157 14.1716C9.92172 13.4214 10.9391 13 12 13C13.0609 13 14.0783 13.4214 14.8284 14.1716C15.5786 14.9217 16 15.9391 16 17C16 18.0609 15.5786 19.0783 14.8284 19.8284C14.0783 20.5786 13.0609 21 12 21Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- 过期提醒卡片 -->
+            <div class="alert-card">
+                <div class="alert-header">
+                    <h2>过期提醒</h2>
+                    <span class="alert-badge" id="alert-count">0</span>
+                </div>
+                <div id="expired-list" class="alert-content"></div>
+            </div>
+            
+            <!-- 功能按钮区域 -->
+            <div class="function-grid">
+                <button id="medicines-btn" class="function-card">
+                    <div class="function-icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M16 4H8C6.89543 4 6 4.89543 6 6V20C6 21.1046 6.89543 22 8 22H16C17.1046 22 18 21.1046 18 20V6C18 4.89543 17.1046 4 16 4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M12 11H16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M12 16H16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M8 11H8.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M8 16H8.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <h3>药品列表</h3>
+                </button>
+                
+                <button id="quick-add-btn" class="function-card add-card">
+                    <div class="function-icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 5V19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                </button>
+            </div>
+            
+
+        </div>
+        
+        <!-- 药品列表页面 -->
+        <div id="medicines-page" class="page">
+            <div class="header">
+                <button id="back-from-medicines-btn" class="icon-btn back-btn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M19 12H5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M12 19L5 12L12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <h1>药品列表</h1>
+                <button id="add-btn" class="primary-btn small">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 6px;">
+                        <path d="M12 5V19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    添加
+                </button>
+            </div>
+            
+            <!-- 搜索和筛选 -->
+            <div class="search-filter-container">
+                <div class="search-box">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 12px;">
+                        <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M21 21L16.65 16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <input type="text" id="search-input" placeholder="搜索药品名称...">
+                </div>
+                <button class="filter-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4 6H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M4 12H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M4 18H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- 药品列表 -->
+            <div class="medicine-list">
+                <div id="medicine-items"></div>
+            </div>
+        </div>
+        
+        <!-- 添加药品页面 -->
+        <div id="add-page" class="page">
+            <div class="header">
+                <button id="back-btn" class="icon-btn back-btn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M19 12H5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M12 19L5 12L12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <h1>添加药品</h1>
+            </div>
+            
+            <div class="form-container">
+                <div class="form-group">
+                    <label for="medicine-name">药品名称</label>
+                    <input type="text" id="medicine-name" placeholder="例如：布洛芬">
+                </div>
+                
+                <div class="form-group">
+                    <label for="expiry-date">有效期</label>
+                    <input type="date" id="expiry-date">
+                </div>
+                
+                <div class="form-group">
+                    <label for="storage-location">位置</label>
+                    <input type="text" id="storage-location" placeholder="例如：客厅抽屉">
+                </div>
+                
+                <div class="form-group">
+                    <label for="quantity">数量</label>
+                    <input type="number" id="quantity" min="1" value="1">
+                </div>
+                
+                <button id="save-btn" class="primary-btn">保存</button>
+            </div>
+        </div>
+        
+        <!-- 设置页面 -->
+        <div id="settings-page" class="page">
+            <div class="header">
+                <button id="back-from-settings-btn" class="icon-btn back-btn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M19 12H5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M12 19L5 12L12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <h1>设置</h1>
+            </div>
+            
+            <div class="settings-container">
+                <div class="setting-section">
+                    <h3>提醒设置</h3>
+                    <div class="setting-item">
+                        <label for="reminder-days">提醒时间（天）</label>
+                        <input type="number" id="reminder-days" min="1" max="30" value="7">
+                    </div>
+                    <button id="save-settings-btn" class="primary-btn">保存设置</button>
+                </div>
+                
+                <div class="setting-section">
+                    <h3>回收站</h3>
+                    <div id="recycle-bin"></div>
+                    <button id="clear-recycle-btn" class="secondary-btn">清空回收站</button>
+                </div>
+                
+                <div class="setting-section">
+                    <h3>亲人共享</h3>
+                    <p>生成分享链接，让亲人查看药品信息</p>
+                    <button id="share-btn" class="primary-btn">生成分享链接</button>
+                    <div id="share-link" class="share-link hidden"></div>
+                </div>
+                
+                <div class="setting-section about">
+                    <h3>关于</h3>
+                    <p>家庭药品管理 v1.0</p>
+                    <p>为家人健康保驾护航</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 编辑药品页面 -->
+        <div id="edit-page" class="page">
+            <div class="header">
+                <button id="back-from-edit-btn" class="icon-btn back-btn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M19 12H5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M12 19L5 12L12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <h1>编辑药品</h1>
+            </div>
+            
+            <div class="form-container">
+                <div class="form-group">
+                    <label for="edit-medicine-name">药品名称</label>
+                    <input type="text" id="edit-medicine-name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit-expiry-date">有效期</label>
+                    <input type="date" id="edit-expiry-date">
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit-storage-location">位置</label>
+                    <input type="text" id="edit-storage-location">
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit-quantity">数量</label>
+                    <input type="number" id="edit-quantity" min="1">
+                </div>
+                
+                <div class="button-group">
+                    <button id="update-btn" class="primary-btn">更新</button>
+                    <button id="delete-btn" class="danger-btn">删除</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
