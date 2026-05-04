@@ -652,6 +652,129 @@ function generateShareLink() {
     }
 }
 
+// 拍照识别药品名称
+function scanMedicineName() {
+    scanFromCamera('medicine-name');
+}
+
+// 拍照识别有效期
+function scanExpiryDate() {
+    scanFromCamera('expiry-date');
+}
+
+// 从摄像头扫描
+function scanFromCamera(targetField) {
+    // 检查浏览器是否支持摄像头API
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert('您的浏览器不支持摄像头功能');
+        return;
+    }
+    
+    // 创建扫描界面
+    const scannerOverlay = document.createElement('div');
+    scannerOverlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.8);
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    `;
+    
+    // 创建视频元素
+    const video = document.createElement('video');
+    video.style.width = '100%';
+    video.style.maxWidth = '500px';
+    video.style.height = 'auto';
+    video.autoplay = true;
+    video.playsInline = true;
+    
+    // 创建拍照按钮
+    const captureBtn = document.createElement('button');
+    captureBtn.textContent = '拍照识别';
+    captureBtn.style.cssText = `
+        margin-top: 20px;
+        padding: 15px 40px;
+        font-size: 18px;
+        background-color: #3498db;
+        color: white;
+        border: none;
+        border-radius: 30px;
+        cursor: pointer;
+        transition: all 0.2s;
+    `;
+    
+    // 创建关闭按钮
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = '关闭';
+    closeBtn.style.cssText = `
+        margin-top: 10px;
+        padding: 10px 30px;
+        font-size: 14px;
+        background-color: transparent;
+        color: white;
+        border: 1px solid white;
+        border-radius: 20px;
+        cursor: pointer;
+    `;
+    
+    // 添加元素到界面
+    scannerOverlay.appendChild(video);
+    scannerOverlay.appendChild(captureBtn);
+    scannerOverlay.appendChild(closeBtn);
+    document.body.appendChild(scannerOverlay);
+    
+    // 获取摄像头权限
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+        .then(stream => {
+            video.srcObject = stream;
+        })
+        .catch(err => {
+            alert('无法访问摄像头，请检查权限设置');
+            document.body.removeChild(scannerOverlay);
+        });
+    
+    // 关闭按钮事件
+    closeBtn.addEventListener('click', () => {
+        if (video.srcObject) {
+            video.srcObject.getTracks().forEach(track => track.stop());
+        }
+        document.body.removeChild(scannerOverlay);
+    });
+    
+    // 拍照按钮事件
+    captureBtn.addEventListener('click', () => {
+        // 停止摄像头
+        if (video.srcObject) {
+            video.srcObject.getTracks().forEach(track => track.stop());
+        }
+        
+        // 模拟识别结果（实际应用中这里会调用OCR识别API）
+        if (targetField === 'medicine-name') {
+            // 模拟识别药品名称
+            const mockMedicineNames = ['布洛芬缓释胶囊', '阿莫西林胶囊', '感冒灵颗粒', '维生素C片', '创可贴'];
+            const randomName = mockMedicineNames[Math.floor(Math.random() * mockMedicineNames.length)];
+            document.getElementById('medicine-name').value = randomName;
+            alert(`识别结果：${randomName}`);
+        } else {
+            // 模拟识别有效期（生成一个未来日期）
+            const futureDate = new Date();
+            futureDate.setDate(futureDate.getDate() + 365); // 默认一年后
+            const formattedDate = futureDate.toISOString().split('T')[0];
+            document.getElementById('expiry-date').value = formattedDate;
+            alert(`识别结果：${formattedDate}`);
+        }
+        
+        // 移除扫描界面
+        document.body.removeChild(scannerOverlay);
+    });
+}
+
 // 处理分享链接
 function handleShareLink() {
     const urlParams = new URLSearchParams(window.location.search);
