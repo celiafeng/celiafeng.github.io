@@ -662,60 +662,13 @@ function scanExpiryDate() {
     scanFromCamera('expiry-date');
 }
 
-// 使用百度OCR API进行识别（中文识别更准确）
-async function baiduOCR(imageBase64) {
-    if (!BAIDU_OCR_API_KEY || !BAIDU_OCR_SECRET_KEY) {
-        throw new Error('请先配置百度OCR API Key和Secret Key');
-    }
-    
-    // 先获取access_token
-    const tokenUrl = 'https://aip.baidubce.com/oauth/2.0/token';
-    const tokenParams = new URLSearchParams({
-        grant_type: 'client_credentials',
-        client_id: BAIDU_OCR_API_KEY,
-        client_secret: BAIDU_OCR_SECRET_KEY
-    });
-    
-    const tokenResponse = await fetch(tokenUrl, {
-        method: 'POST',
-        body: tokenParams
-    });
-    const tokenData = await tokenResponse.json();
-    
-    if (!tokenData.access_token) {
-        throw new Error('获取token失败: ' + tokenData.error_description);
-    }
-    
-    // 调用百度通用文字识别（高精度版）
-    const ocrUrl = 'https://aip.baidubce.com/rest/2.0/ocr/v1/accurate_basic';
-    const ocrParams = new URLSearchParams({
-        image: imageBase64.split(',')[1], // 移除data:image/png;base64,前缀
-        access_token: tokenData.access_token
-    });
-    
-    const ocrResponse = await fetch(ocrUrl, {
-        method: 'POST',
-        body: ocrParams,
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-        }
-    });
-    const ocrData = await ocrResponse.json();
-    
-    if (ocrData.words_result) {
-        return ocrData.words_result.map(item => item.words).join('\n');
-    } else {
-        throw new Error('OCR识别失败: ' + ocrData.error_msg);
-    }
-}
-
 // 使用微信OCR进行识别（需在微信内打开）
 function wechatOCR(targetField, callback) {
     if (typeof window.wx === 'undefined') {
-        throw new Error('微信JS-SDK未加载，请在微信内打开');
+        callback(new Error('微信JS-SDK未加载，请在微信内打开'), null);
+        return;
     }
     
-    // 选择图片
     wx.chooseImage({
         count: 1,
         sizeType: ['compressed'],
@@ -723,7 +676,6 @@ function wechatOCR(targetField, callback) {
         success: function(res) {
             const localIds = res.localIds;
             
-            // 使用微信OCR识别
             wx.ocr({
                 type: 'photo',
                 img: localIds[0],
@@ -747,272 +699,31 @@ function isWeChat() {
     return /MicroMessenger/i.test(navigator.userAgent);
 }
 
-// 初始化微信JS-SDK
-async function initWeChatSDK() {
-    if (!WECHAT_APPID || !isWeChat()) return;
-    
-    try {
-        // 获取签名（需要后端配合）
-        const response = await fetch('/api/wechat/signature?url=' + encodeURIComponent(window.location.href));
-        const data = await response.json();
-        
-        wx.config({
-            debug: false,
-            appId: WECHAT_APPID,
-            timestamp: data.timestamp,
-            nonceStr: data.nonceStr,
-            signature: data.signature,
-            jsApiList: ['chooseImage', 'ocr']
-        });
-        
-        return new Promise((resolve) => {
-            wx.ready(() => resolve(true));
-            wx.error(() => resolve(false));
-        });
-    } catch (err) {
-        console.error('微信SDK初始化失败:', err);
-        return false;
-    }
-}
-
-// 从摄像头扫描
+// 从摄像头扫描 - 只使用微信OCR
 function scanFromCamera(targetField) {
-    // 检查浏览器是否支持摄像头API
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        alert('您的浏览器不支持摄像头功能');
+    if (!isWeChat()) {
+        alert('请在微信内打开此页面以使用拍照识别功能');
         return;
     }
     
-    // 创建扫描界面
-    const scannerOverlay = document.createElement('div');
-    scannerOverlay.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.9);
-        z-index: 1000;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-    `;
+    if (typeof window.wx === 'undefined') {
+        alert('微信功能正在加载，请稍候重试');
+        return;
+    }
     
-    // 创建视频元素
-    const video = document.createElement('video');
-    video.style.width = '100%';
-    video.style.maxWidth = '500px';
-    video.style.height = 'auto';
-    video.autoplay = true;
-    video.playsInline = true;
-    
-    // 创建状态文本
-    const statusText = document.createElement('p');
-    statusText.textContent = '准备就绪';
-    statusText.style.cssText = `
-        color: white;
-        font-size: 16px;
-        margin-top: 15px;
-        text-align: center;
-    `;
-    
-    // 创建进度条容器
-    const progressContainer = document.createElement('div');
-    progressContainer.style.cssText = `
-        width: 100%;
-        max-width: 400px;
-        height: 6px;
-        background-color: rgba(255,255,255,0.2);
-        border-radius: 3px;
-        margin-top: 15px;
-        overflow: hidden;
-    `;
-    
-    // 创建进度条
-    const progressBar = document.createElement('div');
-    progressBar.style.cssText = `
-        width: 0%;
-        height: 100%;
-        background-color: #3498db;
-        border-radius: 3px;
-        transition: width 0.3s ease;
-    `;
-    progressContainer.appendChild(progressBar);
-    
-    // 创建拍照按钮
-    const captureBtn = document.createElement('button');
-    captureBtn.textContent = '拍照识别';
-    captureBtn.style.cssText = `
-        margin-top: 20px;
-        padding: 15px 40px;
-        font-size: 18px;
-        background-color: #3498db;
-        color: white;
-        border: none;
-        border-radius: 30px;
-        cursor: pointer;
-        transition: all 0.2s;
-    `;
-    
-    // 创建关闭按钮
-    const closeBtn = document.createElement('button');
-    closeBtn.textContent = '关闭';
-    closeBtn.style.cssText = `
-        margin-top: 10px;
-        padding: 10px 30px;
-        font-size: 14px;
-        background-color: transparent;
-        color: white;
-        border: 1px solid white;
-        border-radius: 20px;
-        cursor: pointer;
-    `;
-    
-    // 添加元素到界面
-    scannerOverlay.appendChild(video);
-    scannerOverlay.appendChild(statusText);
-    scannerOverlay.appendChild(progressContainer);
-    scannerOverlay.appendChild(captureBtn);
-    scannerOverlay.appendChild(closeBtn);
-    document.body.appendChild(scannerOverlay);
-    
-    // 获取摄像头权限 - 优化配置
-    const constraints = {
-        video: {
-            facingMode: { ideal: 'environment' },
-            width: { ideal: 1280 },
-            height: { ideal: 720 }
-        },
-        audio: false
-    };
-    
-    navigator.mediaDevices.getUserMedia(constraints)
-        .then(stream => {
-            video.srcObject = stream;
-            statusText.textContent = '准备就绪，请拍摄药品包装';
-        })
-        .catch(err => {
-            console.error('摄像头访问错误:', err);
-            // 如果环境摄像头失败，尝试默认摄像头
-            navigator.mediaDevices.getUserMedia({ video: true, audio: false })
-                .then(stream => {
-                    video.srcObject = stream;
-                    statusText.textContent = '准备就绪，请拍摄药品包装';
-                })
-                .catch(err => {
-                    alert('无法访问摄像头，请确保已授予摄像头权限\n\n解决方法：\n1. 点击浏览器地址栏旁的摄像头图标\n2. 选择"允许"访问摄像头\n3. 或者在系统设置中开启摄像头权限');
-                    document.body.removeChild(scannerOverlay);
-                });
+    const recognizePromise = new Promise((resolve, reject) => {
+        wechatOCR(targetField, (err, text) => {
+            if (err) reject(err);
+            else resolve(text);
         });
-    
-    // 关闭按钮事件
-    closeBtn.addEventListener('click', () => {
-        if (video.srcObject) {
-            video.srcObject.getTracks().forEach(track => track.stop());
-        }
-        document.body.removeChild(scannerOverlay);
     });
     
-    // 拍照按钮事件
-    captureBtn.addEventListener('click', async () => {
-        // 停止摄像头
-        if (video.srcObject) {
-            video.srcObject.getTracks().forEach(track => track.stop());
-        }
-        
-        // 显示识别中状态
-        captureBtn.disabled = true;
-        captureBtn.textContent = '识别中...';
-        statusText.textContent = '正在识别文字，请稍候...';
-        
-        let recognizedText = '';
-        
-        // 如果在微信内，使用微信OCR
-        if (isWeChat()) {
-            try {
-                statusText.textContent = '正在使用微信OCR识别...';
-                // 使用Promise包装微信OCR回调
-                const recognizePromise = new Promise((resolve, reject) => {
-                    wechatOCR(targetField, (err, text) => {
-                        if (err) reject(err);
-                        else resolve(text);
-                    });
-                });
-                
-                recognizedText = await recognizePromise;
-                processRecognitionResult(targetField, recognizedText);
-                return;
-            } catch (err) {
-                console.error('微信OCR失败:', err);
-                // 微信OCR失败，继续尝试其他方式
-                statusText.textContent = '微信OCR失败，尝试其他识别方式...';
-            }
-        }
-        
-        // 创建canvas捕获画面
-        const canvas = document.createElement('canvas');
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(video, 0, 0);
-        
-        try {
-            // 优先使用百度OCR（中文识别更准确）
-            if (BAIDU_OCR_API_KEY && BAIDU_OCR_SECRET_KEY) {
-                statusText.textContent = '正在使用百度OCR识别...';
-                const imageBase64 = canvas.toDataURL('image/png');
-                recognizedText = await baiduOCR(imageBase64);
-                statusText.textContent = '百度OCR识别完成';
-            } else {
-                // 回退到Tesseract.js本地识别
-                statusText.textContent = '正在使用本地OCR识别...';
-                const result = await Tesseract.recognize(
-                    canvas,
-                    'eng+chi',
-                    {
-                        logger: m => {
-                            if (m.status === 'recognizing text') {
-                                const progress = Math.round(m.progress * 100);
-                                progressBar.style.width = progress + '%';
-                                statusText.textContent = `正在识别文字... ${progress}%`;
-                            }
-                        }
-                    }
-                );
-                recognizedText = result.data.text.trim();
-            }
-            
-            processRecognitionResult(targetField, recognizedText);
-        } catch (err) {
-            console.error('OCR识别错误:', err);
-            // 如果百度OCR失败，尝试Tesseract.js
-            if (BAIDU_OCR_API_KEY && BAIDU_OCR_SECRET_KEY) {
-                alert('百度OCR识别失败，将使用本地识别重试');
-                try {
-                    const result = await Tesseract.recognize(canvas, 'eng+chi');
-                    recognizedText = result.data.text.trim();
-                    processRecognitionResult(targetField, recognizedText);
-                } catch (tesseractErr) {
-                    alert('识别失败，请重试: ' + tesseractErr.message);
-                    document.body.removeChild(scannerOverlay);
-                }
-            } else {
-                alert('识别失败，请重试: ' + err.message);
-                document.body.removeChild(scannerOverlay);
-            }
-        }
-    });
-    
-    // 处理识别结果
-    function processRecognitionResult(targetField, recognizedText) {
+    recognizePromise.then(recognizedText => {
         if (targetField === 'medicine-name') {
-            // 提取药品名称（取第一行或前30个字符）
             const medicineName = recognizedText.split('\n')[0].substring(0, 30);
             document.getElementById('medicine-name').value = medicineName;
             alert(`识别结果：${medicineName}`);
         } else {
-            // 尝试从识别结果中提取日期
             const datePatterns = [
                 /(\d{4})[年\-/](\d{1,2})[月\-/](\d{1,2})/,
                 /(\d{4})(\d{2})(\d{2})/,
@@ -1040,9 +751,9 @@ function scanFromCamera(targetField) {
                 alert(`未识别到日期，识别内容：${recognizedText}`);
             }
         }
-        
-        document.body.removeChild(scannerOverlay);
-    }
+    }).catch(err => {
+        alert('识别失败：' + err.message);
+    });
 }
 
 // 处理分享链接
