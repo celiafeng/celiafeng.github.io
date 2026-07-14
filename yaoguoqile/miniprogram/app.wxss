@@ -1,0 +1,8 @@
+@import './styles/common.wxss';
+
+page {
+  background-color: #fdf5ec;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #5c3d2e;
+  line-height: 1.6;
+}

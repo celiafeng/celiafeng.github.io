@@ -1,0 +1,223 @@
+<view class="main-container">
+  <!-- 顶部导航栏 -->
+  <view class="top-nav" wx:if="{{currentPage > 0}}">
+    <view class="icon-btn back-btn" catchtap="goPrev">
+      <text style="font-size:20px;">←</text>
+    </view>
+    <text class="nav-title">{{currentPage === 1 ? '小药过期了' : currentPage === 2 ? '药品列表' : currentPage === 3 ? '添加药品' : currentPage === 4 ? '设置' : '编辑药品'}}</text>
+    <view style="width:44px;"></view>
+  </view>
+
+  <!-- 页码指示器 -->
+  <view class="page-indicator" wx:if="{{currentPage > 0 && currentPage < 5}}">
+    <view wx:for="{{totalPages}}" wx:key="*this" wx:for-item="dot" class="dot {{currentPage === dot ? 'active' : ''}}" catchtap="goToPage" data-page="{{dot}}"></view>
+  </view>
+
+  <!-- ==================== 第0页：启动页 ==================== -->
+  <view class="page-content splash-page {{currentPage === 0 ? 'active' : ''}}" bindtap="goNext">
+    <view class="splash-inner">
+      <view class="logo-circle">
+        <text style="font-size:48px;">💊</text>
+      </view>
+      <text class="main-title">小药过期了</text>
+      <text class="sub-title">给家人的用药提醒</text>
+      <text class="desc">关爱家人健康，及时处理过期药品</text>
+      <view class="illustration">
+        <image src="https://neeko-copilot.bytedance.net/api/text2image?prompt=warm%20illustration%20of%20grandmother%20and%20grandson%20looking%20at%20phone%20together%20with%20medicine%20reminder%20app%2C%20cozy%20home%20setting%2C%20soft%20yellow%20warm%20colors%2C%20flat%20style%20illustration&image_size=portrait_4_3" mode="aspectFit" />
+      </view>
+      <view class="tap-hint">
+        <text class="hint-text">点击任意位置开始</text>
+        <view class="arrow-bounce">↓</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ==================== 第1页：首页仪表盘 ==================== -->
+  <view class="page-content {{currentPage === 1 ? 'active' : ''}}">
+    <view class="dashboard-scroll">
+      <view class="alert-card" wx:if="{{currentPage === 1}}">
+        <view class="alert-header">
+          <text class="title">过期提醒</text>
+          <text class="alert-badge">{{alertCount}}</text>
+        </view>
+        <view class="alert-content">
+          <view wx:if="{{alertCount === 0}}" class="empty-text" style="margin-top:0;">暂无过期提醒</view>
+          <view wx:for="{{expiredList}}" wx:key="index" class="expired-item {{item.type === 'expired' ? 'expired' : 'near-expiry'}}">
+            <view class="info">
+              <text class="name">{{item.name}}</text>
+              <text class="detail">有效期：{{item.expiryDate}}</text>
+              <text class="detail">位置：{{item.location}}</text>
+            </view>
+            <view wx:if="{{item.type === 'expired'}}" class="danger-btn small" catchtap="deleteFromAlert" data-index="{{item.originalIndex}}">删除</view>
+          </view>
+        </view>
+      </view>
+
+      <view class="function-grid" wx:if="{{currentPage === 1}}">
+        <view class="function-card" catchtap="goToPage" data-page="2">
+          <view class="function-icon">
+            <text style="font-size:30px;">💊</text>
+          </view>
+          <text class="card-title">药品列表</text>
+        </view>
+        <view class="function-card add-card" catchtap="goToPage" data-page="3">
+          <view class="function-icon">
+            <text style="font-size:34px;color:white;">＋</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="primary-btn" catchtap="shareToFamily" style="margin-top:20px;" wx:if="{{currentPage === 1}}">分享亲人</view>
+      <view class="tap-hint" wx:if="{{currentPage === 1}}">
+        <text class="hint-text" catchtap="goToPage" data-page="4">⚙ 设置</text>
+      </view>
+    </view>
+    <view class="page-bottom-hint" bindtap="goNext" wx:if="{{currentPage === 1}}">
+      <text>点击翻页 ↓</text>
+    </view>
+  </view>
+
+  <!-- ==================== 第2页：药品列表 ==================== -->
+  <view class="page-content {{currentPage === 2 ? 'active' : ''}}">
+    <view class="search-filter-container" wx:if="{{currentPage === 2}}">
+      <view class="search-box">
+        <text>🔍</text>
+        <input type="text" placeholder="搜索药品名称..." bindinput="onSearchInput" value="{{searchTerm}}" catchtap=""/>
+      </view>
+      <view class="filter-btn" catchtap="toggleFilter">
+        <text>🔽</text>
+      </view>
+    </view>
+
+    <view class="filter-options {{showFilter ? '' : 'hidden'}}" style="display:flex;gap:10px;margin-bottom:16px;padding:0 20px;" wx:if="{{currentPage === 2}}">
+      <view class="secondary-btn" style="flex:1;text-align:center;" catchtap="filterAll">全部</view>
+      <view class="secondary-btn" style="flex:1;text-align:center;" catchtap="filterExpired">已过期</view>
+      <view class="secondary-btn" style="flex:1;text-align:center;" catchtap="filterNearExpiry">即将过期</view>
+      <view class="secondary-btn" style="flex:1;text-align:center;" catchtap="filterNormal">正常</view>
+    </view>
+
+    <view class="medicines-scroll" wx:if="{{currentPage === 2}}">
+      <view wx:if="{{filteredMedicines.length === 0}}" class="empty-text">暂无药品，点击下方 + 添加</view>
+      <view wx:for="{{filteredMedicines}}" wx:key="index" class="medicine-item {{item.status}}" catchtap="goToEditPage" data-index="{{item.originalIndex}}">
+        <view class="info">
+          <text class="name">{{item.name}}</text>
+          <text class="detail">有效期：{{item.expiryDate}}</text>
+          <text class="detail">位置：{{item.location}}</text>
+          <text class="detail">数量：{{item.quantity}}</text>
+        </view>
+        <view class="danger-btn small" catchtap="deleteMedicine" data-index="{{item.originalIndex}}">删除</view>
+      </view>
+    </view>
+
+    <view class="bottom-actions" wx:if="{{currentPage === 2}}">
+      <view class="primary-btn" catchtap="goToPage" data-page="3">＋ 添加药品</view>
+    </view>
+    <view class="page-bottom-hint" bindtap="goNext" wx:if="{{currentPage === 2}}">
+      <text>点击翻页 ↓</text>
+    </view>
+  </view>
+
+  <!-- ==================== 第3页：添加药品 ==================== -->
+  <view class="page-content {{currentPage === 3 ? 'active' : ''}}">
+    <view class="form-container" wx:if="{{currentPage === 3}}">
+      <view class="form-group">
+        <text class="label">药品名称</text>
+        <input type="text" placeholder="例如：布洛芬" value="{{addName}}" bindinput="onAddNameInput" catchtap=""/>
+      </view>
+      <view class="form-group">
+        <text class="label">有效期</text>
+        <picker mode="date" value="{{addExpiryDate}}" bindchange="onAddDateChange">
+          <view style="padding:14px 16px;border:1px solid #ebd5c0;border-radius:10px;font-size:16px;background-color:#fffbf5;color:#5c3d2e;" catchtap="">
+            {{addExpiryDate || '请选择有效期'}}
+          </view>
+        </picker>
+      </view>
+      <view class="form-group">
+        <text class="label">位置</text>
+        <input type="text" placeholder="例如：客厅抽屉" value="{{addLocation}}" bindinput="onAddLocationInput" catchtap=""/>
+      </view>
+      <view class="form-group">
+        <text class="label">数量</text>
+        <input type="number" placeholder="1" value="{{addQuantity}}" bindinput="onAddQuantityInput" catchtap=""/>
+      </view>
+      <view class="primary-btn" catchtap="saveMedicine">保存</view>
+    </view>
+    <view class="page-bottom-hint" bindtap="goNext" wx:if="{{currentPage === 3}}">
+      <text>点击翻页 ↓</text>
+    </view>
+  </view>
+
+  <!-- ==================== 第4页：设置 ==================== -->
+  <view class="page-content {{currentPage === 4 ? 'active' : ''}}">
+    <view class="settings-scroll" wx:if="{{currentPage === 4}}">
+      <view class="setting-section">
+        <text class="section-title">提醒设置</text>
+        <view class="setting-item">
+          <text class="label">提醒时间（天）</text>
+          <input type="number" value="{{reminderDays}}" bindinput="onReminderDaysInput" min="1" max="30" catchtap=""/>
+        </view>
+        <view class="primary-btn" catchtap="saveSettings">保存设置</view>
+      </view>
+
+      <view class="setting-section">
+        <text class="section-title">回收站</text>
+        <view wx:if="{{recycleBin.length === 0}}" class="empty-text">回收站为空</view>
+        <view wx:for="{{recycleBin}}" wx:key="index" class="recycle-item">
+          <view class="info">
+            <text class="name">{{item.name}}</text>
+            <text class="detail">有效期：{{item.expiryDate}}</text>
+            <text class="detail">位置：{{item.location}}</text>
+            <text class="detail">数量：{{item.quantity}}</text>
+          </view>
+          <view class="secondary-btn" catchtap="restoreMedicine" data-index="{{index}}" style="margin-top:12px;">恢复</view>
+        </view>
+        <view wx:if="{{recycleBin.length > 0}}" class="secondary-btn" catchtap="clearRecycleBin" style="margin-top:12px;">清空回收站</view>
+      </view>
+
+      <view class="setting-section">
+        <text class="section-title">亲人共享</text>
+        <text class="desc">分享小程序给亲人，让亲人也能管理药品信息</text>
+        <view class="primary-btn" catchtap="shareToFamily">分享给亲人</view>
+      </view>
+
+      <view class="setting-section about">
+        <text class="section-title">关于</text>
+        <text class="desc">小药过期了 v1.0</text>
+        <text class="desc">为家人健康保驾护航</text>
+      </view>
+    </view>
+    <view class="page-bottom-hint" bindtap="goNext" wx:if="{{currentPage === 4}}">
+      <text>点击翻页 ↓</text>
+    </view>
+  </view>
+
+  <!-- ==================== 第5页：编辑药品 ==================== -->
+  <view class="page-content {{currentPage === 5 ? 'active' : ''}}">
+    <view class="form-container" wx:if="{{currentPage === 5}}">
+      <view class="form-group">
+        <text class="label">药品名称</text>
+        <input type="text" value="{{editName}}" bindinput="onEditNameInput" catchtap=""/>
+      </view>
+      <view class="form-group">
+        <text class="label">有效期</text>
+        <picker mode="date" value="{{editExpiryDate}}" bindchange="onEditDateChange">
+          <view style="padding:14px 16px;border:1px solid #ebd5c0;border-radius:10px;font-size:16px;background-color:#fffbf5;color:#5c3d2e;" catchtap="">
+            {{editExpiryDate || '请选择有效期'}}
+          </view>
+        </picker>
+      </view>
+      <view class="form-group">
+        <text class="label">位置</text>
+        <input type="text" value="{{editLocation}}" bindinput="onEditLocationInput" catchtap=""/>
+      </view>
+      <view class="form-group">
+        <text class="label">数量</text>
+        <input type="number" value="{{editQuantity}}" bindinput="onEditQuantityInput" catchtap=""/>
+      </view>
+      <view class="button-group">
+        <view class="primary-btn" catchtap="updateMedicine">更新</view>
+        <view class="danger-btn" catchtap="deleteFromEdit">删除</view>
+      </view>
+    </view>
+  </view>
+</view>
