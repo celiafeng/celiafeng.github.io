@@ -1,0 +1,37 @@
+<view class="container">
+  <view class="header">
+    <view class="icon-btn back-btn" bindtap="goBack">
+      <text style="font-size:20px;">←</text>
+    </view>
+    <text class="title">添加药品</text>
+    <view style="width:44px;"></view>
+  </view>
+
+  <view class="form-container">
+    <view class="form-group">
+      <text class="label">药品名称</text>
+      <input type="text" placeholder="例如：布洛芬" value="{{name}}" bindinput="onNameInput" />
+    </view>
+
+    <view class="form-group">
+      <text class="label">有效期</text>
+      <picker mode="date" value="{{expiryDate}}" bindchange="onDateChange">
+        <view style="padding:14px 16px;border:1px solid #ebd5c0;border-radius:10px;font-size:16px;background-color:#fffbf5;color:#5c3d2e;">
+          {{expiryDate || '请选择有效期'}}
+        </view>
+      </picker>
+    </view>
+
+    <view class="form-group">
+      <text class="label">位置</text>
+      <input type="text" placeholder="例如：客厅抽屉" value="{{location}}" bindinput="onLocationInput" />
+    </view>
+
+    <view class="form-group">
+      <text class="label">数量</text>
+      <input type="number" placeholder="1" value="{{quantity}}" bindinput="onQuantityInput" />
+    </view>
+
+    <view class="primary-btn" bindtap="saveMedicine">保存</view>
+  </view>
+</view>
